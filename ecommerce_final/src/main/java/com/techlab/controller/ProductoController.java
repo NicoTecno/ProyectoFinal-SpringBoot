@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/productos") // Prefijo para todos los endpoints: /api/productos
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")
 // Permite la comunicación con tu frontend React
 public class ProductoController {
 

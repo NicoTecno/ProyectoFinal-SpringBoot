@@ -1,5 +1,6 @@
 package com.techlab.controller;
 
+import com.techlab.dto.LoginRequest;
 import com.techlab.entities.Usuario;
 import com.techlab.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 @RestController
 @RequestMapping("/api/usuarios") // Ruta base: /api/usuarios
 // Necesario para conectar tu frontend React (puerto 5174, si usas Vite)
-@CrossOrigin(origins = "http://localhost:5173")
+//@CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
     private final UserService userService;
@@ -79,6 +80,28 @@ public class UserController {
             return ResponseEntity.noContent().build();
         } catch (EntityNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // 6. LOGIN (POST /api/usuarios/login)
+    // Devuelve el objeto Usuario si las credenciales son válidas.
+    // -------------------------------------------------------------------
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        try {
+            Usuario usuarioAutenticado = userService.validarLogin(
+                    loginRequest.getEmail(),
+                    loginRequest.getPassword()
+            );
+
+            // Retornamos el objeto completo, que incluye el ID y el rol.
+            return ResponseEntity.ok(usuarioAutenticado);
+
+        } catch (RuntimeException e) {
+            // Manejamos errores de credenciales inválidas (Usuario no encontrado/Contraseña incorrecta)
+            // Se usa HttpStatus.UNAUTHORIZED (401) para indicar fallo de autenticación.
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
         }
     }
 }

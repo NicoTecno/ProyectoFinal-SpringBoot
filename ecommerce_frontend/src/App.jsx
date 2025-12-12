@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext'; // <-- Importar el proveedor
 import Navbar from './components/Navbar';
 import ProductsPage from './pages/ProductsPage';
 
 import CartPage from './pages/CartPage';
 import HistoryPage from './pages/HistoryPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import LoginPage from './pages/LoginPage';
 
 // Componentes de marcador de posición (los crearemos después)
 const HomePage = () => <h1 style={{ textAlign: 'center', marginTop: '50px' }}>Bienvenido a Tech Lab Store</h1>;
@@ -16,28 +18,31 @@ const BuilderPage = () => <h1 style={{ textAlign: 'center', marginTop: '50px' }}
 
 function App() {
   return (
-    <Router>
-      <Navbar /> 
-      
-      <main style={{ padding: '20px' }}>
-        <Routes>
-          {/* Definición de todas las rutas */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/productos" element={<ProductsPage />} />
-          <Route path="/builder" element={<BuilderPage />} />
-          <Route path="/carrito" element={<CartPage />} />
-          <Route path="/historial" element={<HistoryPage />} />
-          <Route path="/admin/usuarios" element={<AdminUsersPage />} />
-          
-          {/* Ruta de 404 (No encontrado) */}
-          <Route path="*" element={<h1 style={{ textAlign: 'center', color: 'red' }}>404 - Página no encontrada</h1>} />
-        </Routes>
-      </main>
+    <AuthProvider>
+      <Router>
+        <Navbar /> 
+        
+        <main style={{ padding: '20px' }}>
+          <Routes>
+            {/* Definición de todas las rutas */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/productos" element={<ProductsPage />} />
+            <Route path="/builder" element={<BuilderPage />} />
+            <Route path="/carrito" element={<CartPage />} />
+            <Route path="/historial" element={<HistoryPage />} />
+            <Route path="/admin/usuarios" element={<AdminUsersPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            
+            {/* Ruta de 404 (No encontrado) */}
+            <Route path="*" element={<h1 style={{ textAlign: 'center', color: 'red' }}>404 - Página no encontrada</h1>} />
+          </Routes>
+        </main>
 
-      <footer style={{ textAlign: 'center', padding: '15px', background: '#333', color: 'white', marginTop: '50px' }}>
-        © 2025 Tech Lab Ecommerce
-      </footer>
-    </Router>
+        <footer style={{ textAlign: 'center', padding: '15px', background: '#333', color: 'white', marginTop: '50px' }}>
+          © 2025 Tech Lab Ecommerce
+        </footer>
+      </Router>
+    </AuthProvider>
   );
 }
 
