@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # ¡AJUSTA ESTAS LÍNEAS CON TU USUARIO Y CONTRASEÑA DE MYSQL!
+    url: jdbc:mysql://localhost:3306/ecommerce_techlab?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: root
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update # Crea y actualiza las tablas
+    show-sql: true
+  web:
+    cors:
+      allowed-origins: "http://localhost:3000"
+      allowed-methods: "*"
+
+server:
+  port: 8080
