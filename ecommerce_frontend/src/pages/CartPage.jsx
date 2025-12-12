@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import OrderService from '../services/OrderService';
 
+
 // =========================================================
 // DEFINICIÓN DE ESTILOS (usados en tu código original)
+// Ahora exportamos todas las constantes
 // =========================================================
-const containerStyle = { padding: '20px', maxWidth: '900px', margin: '0 auto' };
-const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
-const thStyle = { border: '1px solid #ddd', padding: '12px', textAlign: 'left', backgroundColor: '#f2f2f2' };
-const tdStyle = { border: '1px solid #ddd', padding: '12px', textAlign: 'left' };
-const totalContainerStyle = { marginTop: '20px', textAlign: 'right', fontSize: '1.2em', fontWeight: 'bold' };
-const deleteButtonStyle = { backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' };
-const checkoutButtonStyle = { backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', marginTop: '10px' };
-const errorStyle = { color: 'red', fontWeight: 'bold' };
-const loadingStyle = { fontSize: '1.5em', color: '#007bff' };
-const emptyCartStyle = { fontSize: '1.5em', color: '#6c757d', textAlign: 'center' };
+export const containerStyle = { padding: '20px', maxWidth: '900px', margin: '0 auto' };
+export const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
+export const thStyle = { border: '1px solid #ddd', padding: '12px', textAlign: 'left', backgroundColor: '#f2f2f2' };
+export const tdStyle = { border: '1px solid #ddd', padding: '12px', textAlign: 'left' };
+export const totalContainerStyle = { marginTop: '20px', textAlign: 'right', fontSize: '1.2em', fontWeight: 'bold' };
+export const deleteButtonStyle = { backgroundColor: '#dc3545', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '5px', cursor: 'pointer' };
+export const checkoutButtonStyle = { backgroundColor: '#28a745', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', marginTop: '10px' };
+export const errorStyle = { color: 'red', fontWeight: 'bold' };
+export const loadingStyle = { fontSize: '1.5em', color: '#007bff' };
+export const emptyCartStyle = { fontSize: '1.5em', color: '#6c757d', textAlign: 'center' };
 
 
 function CartPage() {

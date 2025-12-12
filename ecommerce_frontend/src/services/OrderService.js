@@ -47,6 +47,12 @@ class OrderService {
         // Llama a: http://localhost:8080/api/pedidos/finalizar
         return axios.post(`${API_URL}/finalizar`); 
     }
+
+    getHistorial() {
+        // Llama a: http://localhost:8080/api/pedidos 
+        // Nota: El backend ya está filtrando por estado="CONFIRMADO"
+        return axios.get(API_URL); 
+    }
 }
 
 export default new OrderService();

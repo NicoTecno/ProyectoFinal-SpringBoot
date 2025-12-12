@@ -12,6 +12,7 @@ function Navbar() {
             <div style={linksContainerStyle}>
                 <Link to="/" style={linkStyle}>Inicio</Link>
                 <Link to="/productos" style={linkStyle}>Catálogo</Link>
+                <Link to="/historial" style={linkStyle}>Historial</Link>
                 <Link to="/builder" style={linkStyle}>Armar PC</Link>
                 <Link to="/carrito" style={cartLinkStyle}>
                     🛒 Carrito (0)

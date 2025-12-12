@@ -100,9 +100,25 @@ public class PedidoService {
     // -------------------------------------------------------------------
     // 2. LISTAR PEDIDOS
     // -------------------------------------------------------------------
-
+    
+    @Transactional // Usamos @Transactional para asegurar la carga completa de Producto/Lineas
     public List<Pedido> listarPedidos() {
-        return pedidoRepository.findAll();
+
+        // *********************************************************
+        // CAMBIO CLAVE: Usamos el nuevo método para obtener SOLO los pedidos CONFIRMADOS
+        List<Pedido> pedidosConfirmados = pedidoRepository.findByEstadoOrderByFechaCreacionDesc(ESTADO_CONFIRMADO);
+        // *********************************************************
+
+        // Forzar la carga EAGER de las líneas de pedido y los productos
+        pedidosConfirmados.forEach(pedido -> {
+            pedido.getLineasPedido().forEach(linea -> {
+                if (linea.getProducto() != null) {
+                    linea.getProducto().getNombre(); // Inicializa Producto
+                }
+            });
+        });
+
+        return pedidosConfirmados;
     }
 
     // -------------------------------------------------------------------

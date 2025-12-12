@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import ProductsPage from './pages/ProductsPage';
 
 import CartPage from './pages/CartPage';
+import HistoryPage from './pages/HistoryPage';
 
 // Componentes de marcador de posición (los crearemos después)
 const HomePage = () => <h1 style={{ textAlign: 'center', marginTop: '50px' }}>Bienvenido a Tech Lab Store</h1>;
@@ -24,6 +25,7 @@ function App() {
           <Route path="/productos" element={<ProductsPage />} />
           <Route path="/builder" element={<BuilderPage />} />
           <Route path="/carrito" element={<CartPage />} />
+          <Route path="/historial" element={<HistoryPage />} />
           
           {/* Ruta de 404 (No encontrado) */}
           <Route path="*" element={<h1 style={{ textAlign: 'center', color: 'red' }}>404 - Página no encontrada</h1>} />
