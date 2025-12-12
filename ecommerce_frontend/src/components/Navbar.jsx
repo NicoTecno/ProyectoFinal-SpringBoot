@@ -14,6 +14,7 @@ function Navbar() {
                 <Link to="/productos" style={linkStyle}>Catálogo</Link>
                 <Link to="/historial" style={linkStyle}>Historial</Link>
                 <Link to="/builder" style={linkStyle}>Armar PC</Link>
+                <Link to="/admin/usuarios" style={linkStyle}>Administración</Link>
                 <Link to="/carrito" style={cartLinkStyle}>
                     🛒 Carrito (0)
                 </Link>

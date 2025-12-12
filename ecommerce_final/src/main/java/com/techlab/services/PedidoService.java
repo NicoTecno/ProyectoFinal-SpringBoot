@@ -100,7 +100,7 @@ public class PedidoService {
     // -------------------------------------------------------------------
     // 2. LISTAR PEDIDOS
     // -------------------------------------------------------------------
-    
+
     @Transactional // Usamos @Transactional para asegurar la carga completa de Producto/Lineas
     public List<Pedido> listarPedidos() {
 
@@ -199,4 +199,6 @@ public class PedidoService {
 
         return pedidoRepository.save(pedido);
     }
+
+
 }
