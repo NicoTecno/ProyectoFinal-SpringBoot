@@ -41,6 +41,12 @@ class OrderService {
         // Llama a: http://localhost:8080/api/pedidos/linea/{lineaPedidoId}
         return axios.delete(`${API_URL}/linea/${lineaPedidoId}`);
     }
+
+    // 4. POST: Finalizar el pedido activo
+    finalizeCart() {
+        // Llama a: http://localhost:8080/api/pedidos/finalizar
+        return axios.post(`${API_URL}/finalizar`); 
+    }
 }
 
 export default new OrderService();

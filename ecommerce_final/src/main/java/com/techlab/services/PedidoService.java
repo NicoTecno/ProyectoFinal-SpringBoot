@@ -9,16 +9,22 @@ import com.techlab.repository.ProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import jakarta.persistence.EntityNotFoundException; // Importar
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class PedidoService {
 
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
+
+    // Constante para definir el estado del carrito activo
+    private static final String ESTADO_ACTIVO = "ACTIVO";
+    private static final String ESTADO_CONFIRMADO = "CONFIRMADO";
 
     // Inyección de dependencias por constructor
     @Autowired
@@ -28,10 +34,23 @@ public class PedidoService {
     }
 
     // -------------------------------------------------------------------
-    // 1. CREAR PEDIDO (Lógica Transaccional y de Stock)
+    // MÉTODOS AUXILIARES
     // -------------------------------------------------------------------
 
-    @Transactional // Asegura que si algo falla, todos los cambios se revierten (rollback)
+    // Método auxiliar (private) para recalcular el costo total
+    private void recalcularCostoTotal(Pedido pedido) {
+        double nuevoTotal = 0.0;
+        for (LineaPedido linea : pedido.getLineasPedido()) {
+            nuevoTotal += linea.getPrecioUnitario() * linea.getCantidad();
+        }
+        pedido.setCostoTotal(nuevoTotal);
+    }
+
+    // -------------------------------------------------------------------
+    // 1. CREAR PEDIDO (Añadir al Carrito)
+    // -------------------------------------------------------------------
+
+    @Transactional
     public Pedido crearPedido(Pedido pedido) {
         double total = 0.0;
 
@@ -41,38 +60,40 @@ public class PedidoService {
                 throw new IllegalArgumentException("El producto en la línea de pedido es nulo o no tiene ID.");
             }
 
-            // 1. Obtener Producto y verificar existencia
             Optional<Producto> productoOpt = productoRepository.findById(linea.getProducto().getId());
-
             if (productoOpt.isEmpty()) {
                 throw new IllegalArgumentException("Producto no encontrado con ID: " + linea.getProducto().getId());
             }
 
             Producto producto = productoOpt.get();
 
-            // 2. Validación de Stock
+            // Validación de Stock
             if (linea.getCantidad() > producto.getStock()) {
-                // Lanza la excepción personalizada si no hay suficiente stock
                 throw new StockInsuficienteException(
                         "Stock insuficiente para el producto: " + producto.getNombre() +
                                 ". Stock actual: " + producto.getStock()
                 );
             }
 
-            // 3. Descuento de Stock y Guardar Producto
+            // Descuento de Stock y Guardar Producto
             producto.setStock(producto.getStock() - linea.getCantidad());
-            productoRepository.save(producto); // Actualiza el stock en la base de datos
+            productoRepository.save(producto);
 
-            // 4. Configurar la línea de pedido
-            linea.setProducto(producto); // <-- CORRECCIÓN AÑADIDA: Asigna el objeto Producto completo
+            // Configurar la línea de pedido
+            linea.setProducto(producto);
             linea.setPrecioUnitario(producto.getPrecio());
             total += linea.getCantidad() * producto.getPrecio();
-            linea.setPedido(pedido); // Establece la relación bidireccional
+            linea.setPedido(pedido);
         }
 
-        // 5. Configurar y Guardar el Pedido Final
+        // 5. Configurar y Guardar el Pedido FINAL
         pedido.setCostoTotal(total);
-        pedido.setEstado("confirmado");
+
+        // **********************************************
+        // CORRECCIÓN CLAVE: Debe ser ACTIVO al crear el carrito
+        pedido.setEstado(ESTADO_ACTIVO);
+        // **********************************************
+
         return pedidoRepository.save(pedido);
     }
 
@@ -84,49 +105,41 @@ public class PedidoService {
         return pedidoRepository.findAll();
     }
 
+    // -------------------------------------------------------------------
+    // 3. OBTENER CARRITO ACTIVO (GET /carrito)
+    // -------------------------------------------------------------------
+    @Transactional
     public Optional<Pedido> obtenerUltimoPedido() {
-        Optional<Pedido> pedidoOpt = pedidoRepository.findTopByOrderByIdDesc();
+
+        // Busca solo el último pedido en estado ACTIVO
+        Optional<Pedido> pedidoOpt = pedidoRepository.findTopByEstadoOrderByIdDesc(ESTADO_ACTIVO);
 
         if (pedidoOpt.isPresent()) {
             Pedido pedido = pedidoOpt.get();
 
-            // --- ¡AÑADE ESTE BLOQUE DE CÓDIGO! ---
-            // Esto asegura que la colección y la entidad Producto anidada se carguen
-            // completamente antes de que la transacción termine y Jackson serialice.
+            // Lógica de inicialización EAGER
             pedido.getLineasPedido().forEach(linea -> {
-                // Forzamos la carga tocando una propiedad del objeto Producto
-                // Si el producto no es null, se carga completamente.
                 if (linea.getProducto() != null) {
                     linea.getProducto().getNombre();
                 }
             });
-            // -------------------------------------
-
             return Optional.of(pedido);
         }
-
         return Optional.empty();
     }
 
-    private void recalcularCostoTotal(Pedido pedido) {
-        double nuevoTotal = 0.0;
-        for (LineaPedido linea : pedido.getLineasPedido()) {
-            nuevoTotal += linea.getPrecioUnitario() * linea.getCantidad();
-        }
-        pedido.setCostoTotal(nuevoTotal);
-    }
 
     // -------------------------------------------------------------------
-    // 3. ELIMINAR LÍNEA DE PEDIDO (Lógica Transaccional)
+    // 4. ELIMINAR LÍNEA DE PEDIDO (DELETE)
     // -------------------------------------------------------------------
     @Transactional
     public void eliminarLineaPedido(Long lineaPedidoId) {
-        // 1. Encontrar el Pedido que contiene esta Línea
-        // Usamos el PedidoRepository para encontrar el último pedido (el carrito activo)
-        Pedido pedido = pedidoRepository.findTopByOrderByIdDesc()
+
+        // Busca el carrito ACTIVO
+        Pedido pedido = pedidoRepository.findTopByEstadoOrderByIdDesc(ESTADO_ACTIVO)
                 .orElseThrow(() -> new EntityNotFoundException("No hay un carrito activo para eliminar la línea."));
 
-        // 2. Buscar la línea de pedido dentro de la colección del pedido
+        // Busca la línea
         Optional<LineaPedido> lineaOpt = pedido.getLineasPedido().stream()
                 .filter(linea -> linea.getId().equals(lineaPedidoId))
                 .findFirst();
@@ -137,25 +150,37 @@ public class PedidoService {
 
         LineaPedido lineaAEliminar = lineaOpt.get();
 
+        // Devolver Stock
         Producto producto = lineaAEliminar.getProducto();
         int cantidadDevuelta = lineaAEliminar.getCantidad();
 
         if (producto != null) {
-            // 3.1 Aumentar el stock del producto
             producto.setStock(producto.getStock() + cantidadDevuelta);
-
-            // 3.2 Guardar el producto con el stock actualizado
             productoRepository.save(producto);
         }
 
-        // 4. Eliminar la línea de la colección del Pedido
+        // Eliminar y Recalcular
         pedido.getLineasPedido().remove(lineaAEliminar);
         lineaAEliminar.setPedido(null);
 
-        // 5. Recalcular el costo total del pedido
         this.recalcularCostoTotal(pedido);
-
-        // 6. Guardar el pedido actualizado (manejo implícito por @Transactional)
         pedidoRepository.save(pedido);
+    }
+
+    // -------------------------------------------------------------------
+    // 5. FINALIZAR PEDIDO (POST /finalizar)
+    // -------------------------------------------------------------------
+    @Transactional
+    public Pedido finalizarPedido() {
+
+        // Busca el carrito ACTIVO
+        Pedido pedido = pedidoRepository.findTopByEstadoOrderByIdDesc(ESTADO_ACTIVO)
+                .orElseThrow(() -> new EntityNotFoundException("No hay un carrito activo para finalizar."));
+
+        // Cambiar el estado a CONFIRMADO
+        pedido.setEstado(ESTADO_CONFIRMADO);
+        pedido.setFechaCreacion(LocalDateTime.now());
+
+        return pedidoRepository.save(pedido);
     }
 }

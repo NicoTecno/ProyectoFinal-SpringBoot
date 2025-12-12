@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import OrderService from '../services/OrderService';
 
 // =========================================================
-// ⚠️ NOTA: Los estilos deben estar definidos en tu archivo CSS o al final.
-// Aquí se incluyen estilos simples para hacerlo funcional.
+// DEFINICIÓN DE ESTILOS (usados en tu código original)
 // =========================================================
 const containerStyle = { padding: '20px', maxWidth: '900px', margin: '0 auto' };
 const tableStyle = { width: '100%', borderCollapse: 'collapse', marginTop: '20px' };
@@ -58,7 +57,7 @@ function CartPage() {
     }, []); 
 
     // =========================================================
-    // Función para ELIMINAR ITEM
+    // Función para ELIMINAR ITEM (Ya implementada)
     // =========================================================
     const handleRemoveItem = (lineaPedidoId) => {
         // Confirmación visual antes de la acción
@@ -68,7 +67,7 @@ function CartPage() {
 
         OrderService.deleteLineItem(lineaPedidoId)
             .then(() => {
-                alert("Producto eliminado del carrito.");
+                alert("Producto eliminado del carrito. Stock devuelto al inventario.");
                 // Después de eliminar, recargamos el carrito para actualizar la vista y el total
                 fetchCart(); 
             })
@@ -78,6 +77,37 @@ function CartPage() {
             });
     };
     
+    // =========================================================
+    // NUEVA FUNCIÓN: FINALIZAR COMPRA
+    // =========================================================
+    const handleFinalizePurchase = () => {
+        // Validación básica
+        if (!cart || cart.lineasPedido.length === 0) {
+            alert("No hay productos en el carrito para finalizar la compra.");
+            return;
+        }
+        
+        // Confirmación
+        if (!window.confirm(`¿Confirmas la compra por un total de $${cart.costoTotal.toFixed(2)}?`)) {
+            return;
+        }
+
+        OrderService.finalizeCart()
+            .then(response => {
+                const { pedidoId } = response.data;
+                alert(`¡COMPRA EXITOSA! Su Pedido #${pedidoId} ha sido confirmado.`);
+                
+                // Forzamos la recarga. Como el pedido ya no es "ACTIVO",
+                // la próxima llamada GET a /carrito devolverá 404, y la vista se vaciará.
+                fetchCart(); 
+            })
+            .catch(err => {
+                console.error("Error al finalizar la compra:", err);
+                alert("Error al procesar el pago. Inténtalo de nuevo.");
+            });
+    };
+
+
     // =========================================================
     // Renderizado Condicional
     // =========================================================
@@ -146,7 +176,12 @@ function CartPage() {
             </div>
             
             <div style={{ textAlign: 'right' }}>
-                <button style={checkoutButtonStyle}>FINALIZAR COMPRA</button>
+                <button 
+                    style={checkoutButtonStyle}
+                    onClick={handleFinalizePurchase} // <-- ¡Conexión con la nueva función!
+                >
+                    FINALIZAR COMPRA
+                </button>
             </div>
         </div>
     );

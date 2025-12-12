@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import jakarta.persistence.EntityNotFoundException; // Importar
 import org.springframework.transaction.annotation.Transactional;
@@ -75,6 +76,26 @@ public class PedidoController {
         } catch (Exception e) {
             // Devuelve 500 INTERNAL SERVER ERROR para cualquier otro fallo
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al eliminar la línea: " + e.getMessage());
+        }
+    }
+
+    // -------------------------------------------------------------------
+    // 5. FINALIZAR COMPRA (POST /api/pedidos/finalizar)
+    // -------------------------------------------------------------------
+    @PostMapping("/finalizar")
+    public ResponseEntity<?> finalizarCompra() {
+        try {
+            Pedido pedidoFinalizado = pedidoService.finalizarPedido();
+            // Retornamos el pedido finalizado o un 200 OK con un mensaje
+            return ResponseEntity.ok(
+                    Map.of("message", "Pedido finalizado con éxito.", "pedidoId", pedidoFinalizado.getId())
+            );
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build(); // 404 si no hay carrito
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage()); // 400 si ya estaba finalizado
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al finalizar la compra: " + e.getMessage());
         }
     }
 }
