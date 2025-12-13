@@ -62,6 +62,11 @@ function Navbar() {
                         Panel Admin
                     </Link>
                 )}
+                 {isAdmin && (
+                    <Link to="admin/productos" style={activeLinkStyle}>
+                        Crear Productos
+                    </Link>
+                )}
             </div>
 
             {/* Enlaces de Autenticación/Perfil */}
